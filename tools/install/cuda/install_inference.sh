@@ -10,15 +10,32 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../utils/utils.sh"
+source "$SCRIPT_DIR/../utils/retry_utils.sh"
+
+# Use inherited values or defaults for standalone execution
+PROJECT_ROOT="${PROJECT_ROOT:-$(get_project_root)}"
+RETRY_COUNT="${RETRY_COUNT:-3}"
+
+install_vllm_lm() {
+    local vllm_dir="$PROJECT_ROOT/vllm-FL"
+    local vllm_url="https://github.com/flagos-ai/vllm-FL.git"
+
+    log_info "Installing vllm-FL"
+
+    # Clone repository
+    retry_git_clone "$vllm_url" "$vllm_dir" "$RETRY_COUNT"
+
+    # Install from source
+    cd "$vllm_dir"
+    retry "$RETRY_COUNT" "pip install . -vvv"
+    cd "$PROJECT_ROOT"
+
+    log_success "vllm-FL installed"
+}
 
 main() {
-    log_info "No source dependencies for inference task (placeholder)"
-    # Add source dependency installations here when needed
-    # Example:
-    # source "$SCRIPT_DIR/../utils/retry_utils.sh"
-    # PROJECT_ROOT="${PROJECT_ROOT:-$(get_project_root)}"
-    # RETRY_COUNT="${RETRY_COUNT:-3}"
-    # retry_git_clone "https://github.com/..." "$PROJECT_ROOT/..." "$RETRY_COUNT"
+    log_step "Installing source dependencies for inference task"
+    install_vllm_lm
 }
 
 main "$@"
