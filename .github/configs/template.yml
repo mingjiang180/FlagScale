@@ -11,11 +11,7 @@ ci_image: localhost:5000/flagscale:my-hardware-image
 
 # Runner labels for this hardware (CRITICAL - update these for your runners)
 runner_labels:
-  - self-hosted
-  - Linux
-  - X64
-  - my-runner-label  # Update: change to your runner's labels
-  - gpus-8
+  - flagscale-v1.1
 
 # Container volumes (hardware-specific paths - update as needed)
 container_volumes:
