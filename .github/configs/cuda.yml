@@ -10,11 +10,7 @@ ci_image: localhost:5000/flagscale:cuda12.8.1-cudnn9.7.1-python3.12-torch2.7.1-t
 
 # Runner labels for this hardware
 runner_labels:
-  - self-hosted
-  - Linux
-  - X64
-  - nvidia-0
-  - gpus-8
+  - flagscale-v1.1
 
 # Container volumes (hardware-specific paths)
 container_volumes:
