@@ -2,9 +2,9 @@ name: CUDA Tests Validation
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main_demo"]
   pull_request:
-    branches: ["main"]
+    branches: ["main_demo"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.actor }}
