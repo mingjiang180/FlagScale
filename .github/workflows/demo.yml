@@ -1,0 +1,61 @@
+name: demo_tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.actor }}
+  cancel-in-progress: true
+
+jobs:
+  run_train:
+    runs-on: 
+      - self-hosted
+      - Linux
+      - X64
+      - nvidia
+      - gpu-8
+    container:
+      image: localhost:5000/flagscale:cuda12.8.1-cudnn9.15.1-python3.12-torch2.7.1-time2512031616-train
+      options: --privileged --gpus all --shm-size=500g --hostname flagscale_cicd --user root --ulimit nofile=65535:65535
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          ssh-strict: true
+          ssh-user: git
+          persist-credentials: false
+          clean: true
+          sparse-checkout-cone-mode: true
+          fetch-tags: false
+          show-progress: true
+          lfs: false
+
+      - name: Install dependencies
+        run: |
+          source /root/miniconda3/etc/profile.d/conda.sh
+          conda activate flagscale-train
+          git clone https://github.com/flagos-ai/Megatron-LM-FL.git
+          cd Megatron-LM-FL
+          pip install --no-build-isolation . --verbose
+          
+          mkdir -p /opt/data
+          wget -O /opt/data/datasets.zip https://baai-flagscale.ks3-cn-beijing.ksyuncs.com/temp/datasets.zip && unzip /opt/data/datasets.zip -d /opt/data && rm /opt/data/datasets.zip
+          wget -O /opt/data/tokenizers.zip https://baai-flagscale.ks3-cn-beijing.ksyuncs.com/temp/tokenizers.zip && unzip /opt/data/tokenizers.zip -d /opt/data && rm /opt/data/tokenizers.zip
+
+      - name: test_ddp
+        run: |
+          source /root/miniconda3/etc/profile.d/conda.sh
+          conda activate flagscale-train
+          cd Megatron-LM-FL
+          torchrun --nproc_per_node=8 -m pytest -v tests/unit_tests/distributed/test_distributed_data_parallel.py
