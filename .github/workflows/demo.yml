@@ -12,12 +12,7 @@ concurrency:
 
 jobs:
   run_train:
-    runs-on: 
-      - self-hosted
-      - Linux
-      - X64
-      - nvidia
-      - gpu-8
+    runs-on: flagscale-v1.2-doud
     container:
       image: localhost:5000/flagscale:cuda12.8.1-cudnn9.15.1-python3.12-torch2.7.1-time2512031616-train
       options: --privileged --gpus all --shm-size=500g --hostname flagscale_cicd --user root --ulimit nofile=65535:65535
